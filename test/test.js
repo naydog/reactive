@@ -45,7 +45,7 @@ describe("Reactive test suite", function () {
         a.b.f = {};
         a.b.f.h = '5';
         expect(Object.keys(a.b.f)).toEqual(["h"]);
-    });
+    });    
 });
 
 describe("Watch test suite 1:", function () {
@@ -131,6 +131,20 @@ describe("Watch test suite 1:", function () {
         a.b.f.g = 4;
 
         expect(inWatch).toEqual('5');
+    });
+
+    it('"set" a property multiple times causes a watch execute multiple times', function () {
+        var inWatch = '';
+        watch(a.b.f, 'g', function (o, n) {
+            inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
+        });
+        a.b.f.g = '444';
+        expect(inWatch).toEqual('"444"');
+        
+        inWatch = '';
+        set(a.b.f, 'g', a.b.f.g);
+        a.b.f.g = '555';
+        expect(inWatch).toEqual('"555"');
     });
 });
 
