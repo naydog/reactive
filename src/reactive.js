@@ -197,9 +197,13 @@ function setByRef(targetObj, targetKey, sourceObj, sourceKey) {
 	Object.defineProperty(targetObj, targetKey, property);
 }
 
-/* public */
-// 监控对象的某个属性的变化
-// @param {function} fn 处理方法 function(oldVal, newVal)
+/**
+ * Watch a property change, and do something
+ * @param {object} obj object to watch
+ * @param {string} key property name to watch
+ * @param {function} fn do something
+ * 		function(oldVal, newVal)
+ */
 function watch(obj, key, fn) {
 	if (!obj._$ob$_) {
 		throw 'Object is not reactive';
@@ -208,68 +212,32 @@ function watch(obj, key, fn) {
 	obj._$ob$_.watch(key, fn);
 }
 
-/* public */
+/**
+ * Unwatch a property change
+ * @param {object} obj object
+ * @param {string} key property name to unwatch
+ */
 function unwatch(obj, key) {
 	obj._$ob$_ && obj._$ob$_.unwatch();
 }
 
 
 // TODO:
-// array 操作重载。 splice, push, pop, shift, unshift
-// 某property为object，将其整体替换，然后在其内部的添加新字段（以前的老字段），需要重新调用set方法
+// override array method. splice, push, pop, shift, unshift
+// replace a property of type object to another object, then add new property(which has same name as in old object), need invoke "set" method to make it reactive
 
 
 // NOTICE:
-// 通过 = 赋值一个新属性，是不能使属性reactive的。只能通过set方法实现。set之后可以用 = 再次赋值
+// create a new property through operator =, won't make it reactive. Use "set" method to do it. After "set", you can use = to assign new value
 
-
-// TEST
-a = {
-	a: 1,
-	b: {
-		c: 2,
-		d: 3,
-		f: {},
-		g: [4, 5]
-	},
-	c: [1, 2, 3]
-}
-
-
-toReactiveObject(a);
 
 /* 
 // test watch
-// 删除属性，重新添加，watch还在
+// remove a property and then re-add it. Watches on it still exists
 set(a.b.f, 'g', 'a'.repeat(1000000));
 watch(a.b.f, 'g', function(o, n) { console.log(o, n); });
 a.b.f.g = 'b'.repeat(1000000);
 a.b = { c: 5, d: 8};
 a.b.f = {e: 'x'};
 a.b.f.g = 'd'.repeat(1000000);
-*/
-
-/*
-// test array
-watch(a.b, 'g', function (o, n) {
-	console.log(o, n);
-});
-a.b.g = [7, 8];
-*/
-
-
-/*
-// test 属性引用。 a,b属性联动。一个变动，都变动
-
-b = {}
-setByRef(b, 'c', a.b);
-console.log(JSON.stringify(b.c), JSON.stringify(a));
-a.b.c = 222;
-console.log(JSON.stringify(b.c), JSON.stringify(a));
-b.c.d = 333;
-console.log(JSON.stringify(b.c), JSON.stringify(a));
-a.b.f = 444;
-console.log(JSON.stringify(b.c), JSON.stringify(a));
-b.c.g = 555;
-console.log(JSON.stringify(b.c), JSON.stringify(a));
 */

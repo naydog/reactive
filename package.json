@@ -1,0 +1,23 @@
+{
+  "name": "reactive",
+  "version": "1.0.0",
+  "description": "Javascript reactive object",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/naydog/reactive.git"
+  },
+  "author": "Naydog",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/naydog/reactive/issues"
+  },
+  "homepage": "https://github.com/naydog/reactive#readme",
+  "devDependencies": {
+    "jasmine": "^3.4.0",
+    "karma-jasmine": "^2.0.1"
+  }
+}
