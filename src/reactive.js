@@ -54,21 +54,24 @@ function defineReactiveProperty(obj, key, val) {
 
 	var getter = property && property.get;
 	var setter = property && property.set;
-	getter = null; setter = null;
+	getter = null;
+	setter = null;
 
 	Object.defineProperty(obj, key, {
 		enumerable: true,
 		configurable: true,
 
-		get: function () {
+		get: function reactiveGetter() {
 			var value = getter ? getter.call(obj) : val;
 			return value;
 		},
-		set: function (newVal) {
+		set: function reactiveSetter(newVal) {
 			var value = getter ? getter.call(obj) : val;
 			if (newVal === value || (newVal !== newVal && value !== value)) {
 				return;
 			}
+
+			togglePropertyEnumable(obj, key, true);
 			if (isObject(newVal) && isObject(value) && isArray(newVal) == isArray(value)) { // Both are objects, and of same type
 				if (isArray(newVal)) { //  Both are arrays
 					for (var i = 0; i < value.length && i < newVal.length; i++) {
@@ -83,31 +86,16 @@ function defineReactiveProperty(obj, key, val) {
 					// Remove properties
 					for (var i in value) {
 						if (!Object.getOwnPropertyDescriptor(newVal, i)) {
+							// Set to undefined, not delete. For recover
 							// delete value[i];
-							// TODO value[i] = undefined; // Set to undefined, not delete. For recover
-							// define to enumerable
 							value[i] = undefined;
-							var property = Object.getOwnPropertyDescriptor(value, i);
-							// property.enumerable = false;
-							Object.defineProperty(value, i, {
-								enumerable: false,
-								configurable: true,
-								get: property.get,
-								set: property.set
-							});
+							togglePropertyEnumable(value, i, false);
 						}
 					}
 					// Copy newVal properties to old value
 					for (var i in newVal) {
 						var property = Object.getOwnPropertyDescriptor(value, i);
-						// console.log(property);
 						if (property) { // Update properties  
-							// Object.defineProperty(value, i, {
-							// 	enumerable: true,
-							// 	configurable: true,
-							// 	get: property.get,
-							// 	set: property.set
-							// });
 							value[i] = newVal[i];
 						} else { // Add properties
 							toReactiveProperty(value, i, newVal[i]);
@@ -119,7 +107,6 @@ function defineReactiveProperty(obj, key, val) {
 			}
 
 			// execute watches
-			console.log('changes');
 			obj._$ob$_ && obj._$ob$_.notify(key, value, newVal);
 
 			function toReactive() {
@@ -147,6 +134,14 @@ function attachObserver(parentObject, keyInParent, object) {
 				return ob;
 			}
 		});
+	}
+}
+
+function togglePropertyEnumable(obj, key, enumerable) {
+	var property = Object.getOwnPropertyDescriptor(obj, key);
+	if (property.enumerable !== !!enumerable) {
+		property.enumerable = !!enumerable;
+		Object.defineProperty(obj, key, property);
 	}
 }
 
@@ -218,26 +213,19 @@ function watch(obj, key, fn) {
  * @param {string} key property name to unwatch
  */
 function unwatch(obj, key) {
-	obj._$ob$_ && obj._$ob$_.unwatch();
+	obj._$ob$_ && obj._$ob$_.unwatch(key);
 }
 
 
 // TODO:
 // override array method. splice, push, pop, shift, unshift
-// replace a property of type object to another object, then add new property(which has same name as in old object), need invoke "set" method to make it reactive
 
 
-// NOTICE:
-// create a new property through operator =, won't make it reactive. Use "set" method to do it. After "set", you can use = to assign new value
-
-
-/* 
-// test watch
-// remove a property and then re-add it. Watches on it still exists
-set(a.b.f, 'g', 'a'.repeat(1000000));
-watch(a.b.f, 'g', function(o, n) { console.log(o, n); });
-a.b.f.g = 'b'.repeat(1000000);
-a.b = { c: 5, d: 8};
-a.b.f = {e: 'x'};
-a.b.f.g = 'd'.repeat(1000000);
+/*
+export default {
+	watch,
+	unwatch,
+	setByRef,
+	set,
+}
 */
