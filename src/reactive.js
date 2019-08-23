@@ -42,6 +42,7 @@ function isArray(obj) {
 	return obj instanceof Array;
 }
 
+/* istanbul ignore next */
 function isPrimitive(value) {
 	return typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean';
 }
