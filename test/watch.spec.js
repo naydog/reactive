@@ -145,15 +145,15 @@ describe("Watch test suite 2:", function () {
 
         watch(a.b.f, 'g', function (o, n) {
             inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
-        });
+        }, 'watch1');
         watch(a.b.f, 'g', function (o, n) {
             inWatch += (inWatch ? '\t' : '') + '2:' + JSON.stringify(n);
-        });
+        }, 'watch2');
         a.b.f.g = 5;
         expect(inWatch).toEqual('5\t2:5');
     });
 
-    it('Add a watch twice will count only once', function () {
+    it('Add a same watch twice will count only once', function () {
         var inWatch = '';
 
         var watchFn = function (o, n) {
