@@ -12,13 +12,13 @@ describe("Watch test suite 1:", function () {
             }
         };
         for (var i in a) {
-            set(a, i, a[i]);
+            reactivejs.set(a, i, a[i]);
         }
     });
 
     it('Primitive to object', function () {
         var inWatch = '';
-        watch(a.b, 'c', function (o, n) {
+        reactivejs.watch(a.b, 'c', function (o, n) {
             inWatch = JSON.stringify(n);
         });
         a.b.c = {
@@ -29,7 +29,7 @@ describe("Watch test suite 1:", function () {
 
     it('Object to primitive', function () {
         var inWatch = '';
-        watch(a.b, 'f', function (o, n) {
+        reactivejs.watch(a.b, 'f', function (o, n) {
             inWatch = JSON.stringify(n);
         });
         a.b.f = 1;
@@ -38,7 +38,7 @@ describe("Watch test suite 1:", function () {
 
     it('Array to object', function () {
         var inWatch = '';
-        watch(a.b, 'g', function (o, n) {
+        reactivejs.watch(a.b, 'g', function (o, n) {
             inWatch = JSON.stringify(n);
         });
         a.b.g = {
@@ -49,7 +49,7 @@ describe("Watch test suite 1:", function () {
 
     it('Object to array', function () {
         var inWatch = '';
-        watch(a.b, 'f', function (o, n) {
+        reactivejs.watch(a.b, 'f', function (o, n) {
             inWatch = JSON.stringify(n);
         });
         a.b.f = [7, 8];
@@ -58,7 +58,7 @@ describe("Watch test suite 1:", function () {
 
     it('Still watches if a property is removed and re-added', function () {
         var inWatch = '';
-        watch(a.b.f, 'g', function (o, n) {
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
             inWatch = JSON.stringify(n);
         });
         a.b.f = {};
@@ -69,7 +69,7 @@ describe("Watch test suite 1:", function () {
 
     it('No watch if parent is removed and re-added, and then add a same old property', function () {
         var inWatch = '';
-        watch(a.b.f, 'g', function (o, n) {
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
             inWatch = JSON.stringify(n);
         });
         a.b.f.g = 5;
@@ -85,14 +85,14 @@ describe("Watch test suite 1:", function () {
 
     it('"set" a property multiple times causes a watch execute multiple times', function () {
         var inWatch = '';
-        watch(a.b.f, 'g', function (o, n) {
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
             inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
         });
         a.b.f.g = '444';
         expect(inWatch).toEqual('"444"');
 
         inWatch = '';
-        set(a.b.f, 'g', a.b.f.g);
+        reactivejs.set(a.b.f, 'g', a.b.f.g);
         a.b.f.g = '555';
         expect(inWatch).toEqual('"555"');
     });
@@ -112,7 +112,7 @@ describe("Watch test suite 2:", function () {
             }
         };
         for (var i in a) {
-            set(a, i, a[i]);
+            reactivejs.set(a, i, a[i]);
         }
     });
 
@@ -120,7 +120,7 @@ describe("Watch test suite 2:", function () {
         var inWatch = '';
 
         expect(function () {
-            watch(a, 'c', function (o, n) {
+            reactivejs.watch(a, 'c', function (o, n) {
                 inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
             });
         }).toThrow('Object is not reactive');
@@ -128,29 +128,47 @@ describe("Watch test suite 2:", function () {
 
     it('Unwatch', function () {
         var inWatch = '';
-        watch(a.b.f, 'g', function (o, n) {
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
             inWatch = JSON.stringify(n);
-        });
+        }, 'watch1');
 
         a.b.f.g = 5;
         expect(inWatch).toEqual('5');
 
-        unwatch(a.b.f, 'g');
+        reactivejs.unwatch(a.b.f, 'g', 'watch1');
         a.b.f.g = 4;
         expect(inWatch).toEqual('5');
     });
 
-    it('Add multiple watches on one property', function () {
+    it('Add multiple watches', function () {
         var inWatch = '';
 
-        watch(a.b.f, 'g', function (o, n) {
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
             inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
         }, 'watch1');
-        watch(a.b.f, 'g', function (o, n) {
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
             inWatch += (inWatch ? '\t' : '') + '2:' + JSON.stringify(n);
         }, 'watch2');
         a.b.f.g = 5;
         expect(inWatch).toEqual('5\t2:5');
+    });
+
+    it('Unwatch all', function () {
+        var inWatch = '';
+
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
+            inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
+        }, 'watch1');
+        reactivejs.watch(a.b.f, 'g', function (o, n) {
+            inWatch += (inWatch ? '\t' : '') + '2:' + JSON.stringify(n);
+        }, 'watch2');
+        a.b.f.g = 5;
+        expect(inWatch).toEqual('5\t2:5');
+
+        reactivejs.unwatch(a.b.f, 'g');
+        inWatch = '';
+        a.b.f.g = 7;
+        expect(inWatch).toEqual('');
     });
 
     it('Add a same watch twice will count only once', function () {
@@ -159,12 +177,12 @@ describe("Watch test suite 2:", function () {
         var watchFn = function (o, n) {
             inWatch += (inWatch ? '\t' : '') + JSON.stringify(n);
         }
-        watch(a.b.f, 'g', watchFn);
+        reactivejs.watch(a.b.f, 'g', watchFn);
         a.b.f.g = 5;
         expect(inWatch).toEqual('5');
 
         inWatch = '';
-        watch(a.b.f, 'g', watchFn);
+        reactivejs.watch(a.b.f, 'g', watchFn);
         a.b.f.g = 4;
         expect(inWatch).toEqual('4');
     });

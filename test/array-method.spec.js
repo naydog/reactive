@@ -1,5 +1,6 @@
 describe("Array method test suite:", function () {
     var a;
+    var inWatch;
     beforeEach(function () {
         a = {
             a: 1,
@@ -14,14 +15,17 @@ describe("Array method test suite:", function () {
             c: [1, 2, 3]
         };
         for (var i in a) {
-            set(a, i, a[i]);
+            reactivejs.set(a, i, a[i]);
         }
+        inWatch = '';
     });
 
-    // it("Set new property by reference", function () {
-      
-    //     expect(b.c).toEqual(a.b);
-    // });
-
+    it("Splice", function () {
+        reactivejs.watch(a.b, 'g', function(o, n) {
+            inWatch = JSON.stringify(n);
+        }, 'watch1');
+        a.b.g.splice(0, 1);
+        expect(inWatch).toEqual("[5]");
+    });
     
 });

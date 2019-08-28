@@ -225,13 +225,19 @@ function watch(obj, key, fn, name) {
 }
 
 /**
- * Unwatch a property change. If a name is passed, then remove watches has that name only
+ * Unwatch property change. If a name is passed, then remove watches has that name only
  * @param {object} obj object
  * @param {string} key property name to unwatch
  * @param {string} name name
  */
 function unwatch(obj, key, name) {
-	obj._$ob$_ && obj._$ob$_.unwatch(key, name);
+	if (obj._$ob$_) {
+		if (typeof name !== 'undefined') {
+			obj._$ob$_.unwatch(key, name);
+		} else {
+			obj._$ob$_.unwatchAll(key);
+		}
+	}
 }
 
 
@@ -239,11 +245,10 @@ function unwatch(obj, key, name) {
 // override: following array methods will trigger setter.  splice, push, pop, shift, unshift, sort, reverse
 
 
-/*
+
 export default {
 	watch,
 	unwatch,
 	setByRef,
 	set,
 }
-*/

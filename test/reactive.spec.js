@@ -14,14 +14,14 @@ describe("Reactive test suite:", function () {
             c: [1, 2, 3]
         };
         for (var i in a) {
-            set(a, i, a[i]);
+            reactivejs.set(a, i, a[i]);
         }
     });
 
     it("Set new property by reference", function () {
         var b = {};
         // If b.c is set to a.b through "setByRef", a.b will change when b.c is re-assigned
-        setByRef(b, 'c', a.b);
+        reactivejs.setByRef(b, 'c', a.b);
         b.c = 1;
         expect(b.c).toEqual(a.b);
     });
@@ -38,7 +38,7 @@ describe("Reactive test suite:", function () {
         var b = {};
 
         expect(function () {
-            setByRef(b, 'c', a);
+            reactivejs.setByRef(b, 'c', a);
         }).toThrow('Not a reactive object');
     });
 

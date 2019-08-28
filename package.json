@@ -4,7 +4,8 @@
   "description": "Javascript reactive object",
   "main": "index.js",
   "scripts": {
-    "test": "karma start karma.conf.js"
+    "test": "karma start karma.conf.js",
+    "rollup": "rollup -c config/rollup.dev.config.js -w"
   },
   "repository": {
     "type": "git",
@@ -17,10 +18,15 @@
   },
   "homepage": "https://github.com/naydog/reactive#readme",
   "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-preset-env": "^1.7.0",
     "jasmine": "^3.4.0",
     "karma": "^4.2.0",
     "karma-chrome-launcher": "^3.1.0",
     "karma-coverage": "^2.0.1",
-    "karma-jasmine": "^2.0.1"
+    "karma-jasmine": "^2.0.1",
+    "rollup": "^1.15.2",
+    "rollup-plugin-babel": "^3.0.7",
+    "rollup-plugin-node-resolve": "^5.0.1"
   }
 }
