@@ -1,5 +1,5 @@
 function Observer(parentObject, keyInParent) {
-	this.parentObject = parentObject;
+	this.parent = parentObject;
 	this.property = keyInParent;
 	// callback functions for property change
 	// { propertyName: [{name: string, fn: function}]}
@@ -15,6 +15,10 @@ Observer.prototype.notify = function (key, oldVal, newVal) {
 	}
 }
 
+Observer.prototype.notifyParent = function (oldVal, newVal) {
+	this.parent._$ob$_ && this.parent._$ob$_.notify(this.property, oldVal, newVal);
+}
+
 Observer.prototype.watch = function (key, fn, name) {
 	var watches = this.watches;
 	if (!watches[key]) {
@@ -28,7 +32,10 @@ Observer.prototype.watch = function (key, fn, name) {
 			return;
 		}
 	}
-	watches[key].push({name: name, fn: fn});
+	watches[key].push({
+		name: name,
+		fn: fn
+	});
 }
 
 Observer.prototype.unwatch = function (key, name) {
@@ -47,6 +54,62 @@ Observer.prototype.unwatchAll = function (key) {
 	this.watches[key] = [];
 }
 
+
+// intercept method that update a array
+var arrayMethodNames = [
+	'push',
+	'pop',
+	'shift',
+	'unshift',
+	'splice',
+	'sort',
+	'reverse'
+];
+var arrayProto = Array.prototype;
+var arrayMethods = Object.create(arrayProto);
+arrayMethodNames.forEach(function (method) {
+	// cache original method
+	var original = arrayProto[method];
+	Object.defineProperty(arrayMethods, method, {
+		enumerable: false,
+		writable: true,
+		configurable: true,
+		value: function () {
+			var args = [],
+				len = arguments.length;
+			while (len--) args[len] = arguments[len];
+
+			var oldVal = this.slice();
+			var result = original.apply(this, args);
+			var ob = this._$ob$_;
+			var newItems;
+			switch (method) {
+				case 'push':
+				case 'unshift':
+					newItems = args;
+					break
+				case 'splice':
+					newItems = args.slice(2);
+					break
+			}
+			if (newItems) {
+				for (var i in newItems) {
+					toReactiveObject(newItems[i]);
+				}
+			}
+			// notify change 
+			ob && ob.notifyParent(oldVal, this);
+			return result;
+		}
+	});
+});
+
+function overrideArrayMethod(array) {
+	for (var i in arrayMethodNames) {
+		var method = arrayMethodNames[i];
+		Object.defineProperty(array, method, Object.getOwnPropertyDescriptor(arrayMethods, method));
+	}
+}
 
 function isObject(obj) {
 	return typeof obj == 'object' && obj;
@@ -76,11 +139,11 @@ function defineReactiveProperty(obj, key, val) {
 		enumerable: true,
 		configurable: true,
 
-		get: function reactiveGetter() {
+		get: function () {
 			var value = getter ? getter.call(obj) : val;
 			return value;
 		},
-		set: function reactiveSetter(newVal) {
+		set: function (newVal) {
 			var value = getter ? getter.call(obj) : val;
 			if (newVal === value || (newVal !== newVal && value !== value)) {
 				return;
@@ -172,6 +235,9 @@ function toReactiveProperty(obj, key, val) {
  */
 function toReactiveObject(obj) {
 	if (isObject(obj)) {
+		if (isArray(obj)) {
+			overrideArrayMethod(obj);
+		}
 		for (var i in obj) {
 			defineReactiveProperty(obj, i, obj[i]);
 			toReactiveObject(obj[i]);
@@ -200,7 +266,7 @@ function setByRef(targetObj, targetKey, sourceObj, sourceKey) {
 
 	if (!sourceKey) {
 		var ob = sourceObj._$ob$_;
-		sourceObj = ob.parentObject;
+		sourceObj = ob.parent;
 		sourceKey = ob.property;
 	}
 	var property = Object.getOwnPropertyDescriptor(sourceObj, sourceKey);
@@ -239,11 +305,6 @@ function unwatch(obj, key, name) {
 		}
 	}
 }
-
-
-// TODO:
-// override: following array methods will trigger setter.  splice, push, pop, shift, unshift, sort, reverse
-
 
 
 export default {
