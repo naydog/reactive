@@ -192,7 +192,12 @@ function toReactiveObject(obj) {
  * @param {any} val property value to set
  */
 function set(obj, key, val) {
-	toReactiveProperty(obj, key, val);
+	var property = Object.getOwnPropertyDescriptor(obj, key);
+	if (property && typeof property.value === 'undefined') { // already set
+		obj[key] = val;
+	} else {
+		toReactiveProperty(obj, key, val);
+	} 
 }
 
 /**

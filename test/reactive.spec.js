@@ -26,6 +26,31 @@ describe("Reactive test suite:", function () {
         expect(b.c).toEqual(a.b);
     });
 
+    it("Re-set a property", function() {
+        var b = {};
+        reactivejs.set(a, 'd', 3);
+        reactivejs.setByRef(b, 'c', a, 'd');
+        
+        b.c = 1;
+        expect(a.d).toEqual(1);
+        
+        reactivejs.set(a, 'd', 5);
+        expect(b.c).toEqual(5);
+    });
+
+    it("Re-setByRef a property", function() {
+        var b = {};
+        reactivejs.set(a, 'd', 3);
+        reactivejs.setByRef(b, 'c', a, 'd');
+        
+        b.c = 1;
+        expect(a.d).toEqual(1);
+        
+        reactivejs.setByRef(b, 'c', a, 'd');
+        a.d = 7;
+        expect(b.c).toEqual(7);
+    });
+
     it("Set new property by operator =", function () {
         var b = {};
         // If b.c is set to a.b through operator =, re-assign b.c will not affect a.b
