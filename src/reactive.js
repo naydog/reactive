@@ -1,9 +1,8 @@
 import {
 	isObject,
 	isArray
-} from '../src/utils'
-import Observer from '../src/observer'
-
+} from './utils'
+import Observer from './observer'
 
 // intercept method that update a array
 var arrayMethodNames = [
@@ -68,21 +67,23 @@ function defineReactiveProperty(obj, key, val) {
 		return;
 	}
 
-	var getter = property && property.get;
-	var setter = property && property.set;
-	getter = null;
-	setter = null;
+	// var getter = property && property.get;
+	// var setter = property && property.set;
+	// getter = null;
+	// setter = null;
 
 	Object.defineProperty(obj, key, {
 		enumerable: true,
 		configurable: true,
 
 		get: function () {
-			var value = getter ? getter.call(obj) : val;
+			// var value = getter ? getter.call(obj) : val;
+			var value = val;
 			return value;
 		},
 		set: function (newVal) {
-			var value = getter ? getter.call(obj) : val;
+			// var value = getter ? getter.call(obj) : val;
+			var value = val;
 			if (newVal === value || (newVal !== newVal && value !== value)) {
 				return;
 			}
@@ -128,11 +129,11 @@ function defineReactiveProperty(obj, key, val) {
 			function toReactive() {
 				toReactiveObject(newVal);
 				attachObserver(obj, key, newVal);
-				if (setter) {
-					setter.call(obj, newVal);
-				} else {
-					val = newVal;
-				}
+				// if (setter) {
+				// 	setter.call(obj, newVal);
+				// } else {
+				val = newVal;
+				// }
 			}
 		}
 	});
@@ -194,9 +195,14 @@ function set(obj, key, val) {
 	toReactiveProperty(obj, key, val);
 }
 
-/* public */
-// Assign by reference. Adaptable for reactive object
-// Reactive object must have an unenumerable property '_$ob$_', which saves the parent object and its property name in parent
+/**
+ * Assign by reference. Adaptable for reactive object
+ * Reactive object must have an unenumerable property '_$ob$_', which saves the parent object and its property name in parent
+ * @param {object} targetObj 
+ * @param {string} targetKey 
+ * @param {object} sourceObj obj to reference
+ * @param {string} sourceKey key to reference. If not set, then reference sourceObj
+ */
 function setByRef(targetObj, targetKey, sourceObj, sourceKey) {
 	if (!sourceKey && !sourceObj._$ob$_) {
 		throw 'Not a reactive object';
@@ -208,6 +214,9 @@ function setByRef(targetObj, targetKey, sourceObj, sourceKey) {
 		sourceKey = ob.property;
 	}
 	var property = Object.getOwnPropertyDescriptor(sourceObj, sourceKey);
+	if (typeof property.value !== 'undefined') {
+		throw `Property "${sourceKey}" of source object is not reactive`;
+	}
 	Object.defineProperty(targetObj, targetKey, property);
 }
 

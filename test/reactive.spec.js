@@ -42,6 +42,15 @@ describe("Reactive test suite:", function () {
         }).toThrow('Not a reactive object');
     });
 
+    it('Set by reference on non-reactive property', function () {
+        var b = {};
+        a.d = 3;
+
+        expect(function () {
+            reactivejs.setByRef(b, 'c', a, 'd');
+        }).toThrow('Property "d" of source object is not reactive');
+    });
+
     it("Set array to array", function () {
         a.b.g = [1,2,3];
         expect(a.b.g.length).toEqual(3);
